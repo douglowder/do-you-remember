@@ -8,7 +8,11 @@
     "scheme": "doyouremember",
     "userInterfaceStyle": "automatic",
     "updates": {
-      "url": "https://u.expo.dev/276fe437-b229-4be3-82f2-99e262ed485c"
+      "useNativeDebug": true,
+      "requestHeaders": {
+        "expo-channel-name": "preview"
+      },
+      "url": "https://u.expo.dev/ce662ac1-302e-4b09-8720-d4bbd3a02ec6"
     },
     "runtimeVersion": {
       "policy": "appVersion"
@@ -16,9 +20,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.expokadi.doyouremember",
-      "associatedDomains": [
-        "applinks:do-you-remember.expo.app"
-      ],
+      "associatedDomains": ["applinks:do-you-remember.expo.app"],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
@@ -44,10 +46,7 @@
               "pathPrefix": "/"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
     },
@@ -81,9 +80,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "276fe437-b229-4be3-82f2-99e262ed485c"
+        "projectId": "ce662ac1-302e-4b09-8720-d4bbd3a02ec6"
       }
     },
-    "owner": "expokadi"
+    "owner": "douglowderexpo"
   }
 }
