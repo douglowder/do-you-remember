@@ -1,0 +1,92 @@
+diff --git a/node_modules/expo-eas-observe/ios/ExpoEASObserve.podspec b/node_modules/expo-eas-observe/ios/ExpoEASObserve.podspec
+index def822c..22979f1 100644
+--- a/node_modules/expo-eas-observe/ios/ExpoEASObserve.podspec
++++ b/node_modules/expo-eas-observe/ios/ExpoEASObserve.podspec
+@@ -4,6 +4,7 @@ package = JSON.parse(File.read(File.join(__dir__, '..', 'package.json')))
+ 
+ reactNativeVersion = begin `node --print "require('react-native/package.json').version"`.strip rescue '0.0.0' end
+ expoSdkVersion = begin `node --print "require('expo/package.json').version"`.strip rescue '0.0.0' end
++easBuildId = ENV.has_key?('EAS_BUILD_ID') ? ENV['EAS_BUILD_ID'] : 'placeholder'
+ 
+ Pod::Spec.new do |s|
+   s.name           = 'ExpoEASObserve'
+@@ -34,7 +35,8 @@ Pod::Spec.new do |s|
+     'GCC_PREPROCESSOR_DEFINITIONS' => [
+       "REACT_NATIVE_VERSION=\"#{reactNativeVersion}\"",
+       "EXPO_SDK_VERSION=\"#{expoSdkVersion}\"",
+-      "EXPO_EAS_OBSERVE_VERSION=\"#{package['version']}\""
++      "EXPO_EAS_OBSERVE_VERSION=\"#{package['version']}\"",
++      "EXPO_EAS_OBSERVE_BUILD_ID=\"#{easBuildId}\""
+     ]
+   }
+ 
+diff --git a/node_modules/expo-eas-observe/ios/Observe/EASObserveVersions.h b/node_modules/expo-eas-observe/ios/Observe/EASObserveVersions.h
+index 9d9a5ef..b84fecb 100644
+--- a/node_modules/expo-eas-observe/ios/Observe/EASObserveVersions.h
++++ b/node_modules/expo-eas-observe/ios/Observe/EASObserveVersions.h
+@@ -7,5 +7,6 @@
+ @property (class, readonly, nonnull) NSString *reactNativeVersion;
+ @property (class, readonly, nonnull) NSString *expoSdkVersion;
+ @property (class, readonly, nonnull) NSString *clientVersion;
++@property (class, readonly, nonnull) NSString *easBuildId;
+ 
+ @end
+diff --git a/node_modules/expo-eas-observe/ios/Observe/EASObserveVersions.m b/node_modules/expo-eas-observe/ios/Observe/EASObserveVersions.m
+index 469e6e1..9c7b12c 100644
+--- a/node_modules/expo-eas-observe/ios/Observe/EASObserveVersions.m
++++ b/node_modules/expo-eas-observe/ios/Observe/EASObserveVersions.m
+@@ -8,6 +8,7 @@
+ #define REACT_NATIVE_VERSION_STRING STRINGIZE2(REACT_NATIVE_VERSION)
+ #define EXPO_SDK_VERSION_STRING STRINGIZE2(EXPO_SDK_VERSION)
+ #define EXPO_EAS_OBSERVE_VERSION_STRING STRINGIZE2(EXPO_EAS_OBSERVE_VERSION)
++#define EXPO_EAS_OBSERVE_BUILD_ID_STRING STRINGIZE2(EXPO_EAS_OBSERVE_BUILD_ID)
+ 
+ @implementation EASObserveVersions
+ 
+@@ -26,4 +27,9 @@
+   return @EXPO_EAS_OBSERVE_VERSION_STRING;
+ }
+ 
+++ (NSString *)easBuildId
++{
++  return @EXPO_EAS_OBSERVE_BUILD_ID_STRING;
++}
++
+ @end
+diff --git a/node_modules/expo-eas-observe/ios/Observe/Event.swift b/node_modules/expo-eas-observe/ios/Observe/Event.swift
+index 8d63da8..eea5fab 100644
+--- a/node_modules/expo-eas-observe/ios/Observe/Event.swift
++++ b/node_modules/expo-eas-observe/ios/Observe/Event.swift
+@@ -13,6 +13,7 @@ struct Event: Codable, Sendable {
+     let appVersion: String?
+     let appBuildNumber: String?
+     let appUpdateId: String?
++    let appEasBuildId: String?
+ 
+     // DeviceInfo
+     let deviceName: String
+@@ -57,6 +58,7 @@ struct Event: Codable, Sendable {
+         appVersion: app.appVersion,
+         appBuildNumber: app.buildNumber,
+         appUpdateId: app.updateId,
++        appEasBuildId: EASObserveVersions.easBuildId,
+ 
+         deviceName: device.modelName,
+         deviceModel: device.modelIdentifier,
+diff --git a/node_modules/expo-eas-observe/ios/Observe/Observability.swift b/node_modules/expo-eas-observe/ios/Observe/Observability.swift
+index e13eeb2..34d1b9b 100644
+--- a/node_modules/expo-eas-observe/ios/Observe/Observability.swift
++++ b/node_modules/expo-eas-observe/ios/Observe/Observability.swift
+@@ -59,9 +59,9 @@ internal struct ObservabilityManager {
+       request.allHTTPHeaderFields = ["Content-Type": "application/json"]
+       request.httpBody = try body.toData()
+ 
+-      #if DEBUG
+-      print("[EAS Observe] Sending the request with body: \(try body.toString(.prettyPrinted))")
+-      #endif
++      // #if DEBUG
++      logger.info("[EAS Observe] Sending the request with body: \(try body.toString(.prettyPrinted))")
++      // #endif
+ 
+       let (responseData, urlResponse) = try await URLSession.shared.data(for: request)
+ 
