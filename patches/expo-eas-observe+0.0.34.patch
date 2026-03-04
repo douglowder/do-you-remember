@@ -1,3 +1,89 @@
+diff --git a/node_modules/expo-eas-observe/android/build.gradle b/node_modules/expo-eas-observe/android/build.gradle
+index 551d22e..014ddfa 100644
+--- a/node_modules/expo-eas-observe/android/build.gradle
++++ b/node_modules/expo-eas-observe/android/build.gradle
+@@ -48,6 +48,8 @@ def expoSdkVersion = providers.exec {
+     commandLine("node", "--print", "require('expo/package.json').version")
+ }.standardOutput.asText.get().trim()
+ 
++def easBuildId = System.getenv("EAS_BUILD_ID") ?: "placeholder"
++
+ android {
+     namespace "expo.modules.appmetrics"
+ 
+@@ -59,6 +61,7 @@ android {
+                 "\"${reactNativeVersion.major}.${reactNativeVersion.minor}.${reactNativeVersion.patch}\""
+         buildConfigField "String", "EXPO_EAS_OBSERVE_VERSION", "\"${packageJson.version}\""
+         buildConfigField "String", "EXPO_SDK_VERSION", "\"${expoSdkVersion}\""
++        buildConfigField "String", "EXPO_EAS_OBSERVE_BUILD_ID", "\"${easBuildId}\""
+     }
+ }
+ 
+diff --git a/node_modules/expo-eas-observe/android/src/main/java/expo/eas/observe/Event.kt b/node_modules/expo-eas-observe/android/src/main/java/expo/eas/observe/Event.kt
+index 60376a3..2ea26c9 100644
+--- a/node_modules/expo-eas-observe/android/src/main/java/expo/eas/observe/Event.kt
++++ b/node_modules/expo-eas-observe/android/src/main/java/expo/eas/observe/Event.kt
+@@ -12,6 +12,7 @@ data class Metadata(
+   val appVersion: String?,
+   val appBuildNumber: String?,
+   val appUpdateId: String?,
++  val appEasBuildId: String = "undefined",
+   val languageTag: String?,
+   val deviceOs: String?,
+   val deviceOsVersion: String?,
+diff --git a/node_modules/expo-eas-observe/android/src/main/java/expo/eas/observe/ExpoManifest.kt b/node_modules/expo-eas-observe/android/src/main/java/expo/eas/observe/ExpoManifest.kt
+index 2e6e793..bf7ee37 100644
+--- a/node_modules/expo-eas-observe/android/src/main/java/expo/eas/observe/ExpoManifest.kt
++++ b/node_modules/expo-eas-observe/android/src/main/java/expo/eas/observe/ExpoManifest.kt
+@@ -59,6 +59,7 @@ internal value class ExpoManifest(
+       appVersion = packageInfo.versionName,
+       appBuildNumber = getAppBuildNumber(packageInfo),
+       appUpdateId = getAppUpdateId(),
++      appEasBuildId = BuildConfig.EXPO_EAS_OBSERVE_BUILD_ID,
+       appName = context.applicationInfo.loadLabel(context.packageManager).toString(),
+       deviceOs = DEVICE_OS,
+       // Type is the unique device model name (e.g. tegu = Google Pixel 9a)
+diff --git a/node_modules/expo-eas-observe/android/src/main/java/expo/modules/appmetrics/storage/MetricsDatabase.kt b/node_modules/expo-eas-observe/android/src/main/java/expo/modules/appmetrics/storage/MetricsDatabase.kt
+index eed656f..ed2fe6a 100644
+--- a/node_modules/expo-eas-observe/android/src/main/java/expo/modules/appmetrics/storage/MetricsDatabase.kt
++++ b/node_modules/expo-eas-observe/android/src/main/java/expo/modules/appmetrics/storage/MetricsDatabase.kt
+@@ -26,7 +26,7 @@ object MetricsConstants {
+ 
+ @Database(
+   entities = [Metric::class, Session::class],
+-  version = 9,
++  version = 10,
+   exportSchema = false
+ )
+ abstract class MetricsDatabase : RoomDatabase() {
+@@ -71,6 +71,7 @@ data class Session(
+   @Field val appVersion: String? = null,
+   @Field val appBuildNumber: String? = null,
+   @Field val appUpdateId: String? = null,
++  @Field val appEasBuildId: String? = null,
+   // Device Info
+   @Field val deviceOs: String? = null,
+   @Field val deviceOsVersion: String? = null,
+@@ -90,6 +91,7 @@ data class Session(
+       appVersion = appVersion,
+       appBuildNumber = appBuildNumber,
+       appUpdateId = appUpdateId,
++      appEasBuildId = appEasBuildId ?: "undefined",
+       deviceOs = deviceOs,
+       deviceOsVersion = deviceOsVersion,
+       deviceModel = deviceModel,
+diff --git a/node_modules/expo-eas-observe/android/src/main/java/expo/modules/appmetrics/storage/SessionManager.kt b/node_modules/expo-eas-observe/android/src/main/java/expo/modules/appmetrics/storage/SessionManager.kt
+index 0416f0a..03ef0e8 100644
+--- a/node_modules/expo-eas-observe/android/src/main/java/expo/modules/appmetrics/storage/SessionManager.kt
++++ b/node_modules/expo-eas-observe/android/src/main/java/expo/modules/appmetrics/storage/SessionManager.kt
+@@ -48,6 +48,7 @@ class SessionManager(
+       appVersion = metadata?.appVersion,
+       appBuildNumber = metadata?.appBuildNumber,
+       appUpdateId = metadata?.appUpdateId,
++      appEasBuildId = metadata?.appEasBuildId,
+       deviceOs = metadata?.deviceOs,
+       deviceOsVersion = metadata?.deviceOsVersion,
+       deviceModel = metadata?.deviceModel,
 diff --git a/node_modules/expo-eas-observe/ios/ExpoEASObserve.podspec b/node_modules/expo-eas-observe/ios/ExpoEASObserve.podspec
 index def822c..22979f1 100644
 --- a/node_modules/expo-eas-observe/ios/ExpoEASObserve.podspec
