@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ThemedText } from '@/components/themed-text';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -11,7 +11,7 @@ interface OptionButtonProps {
   label: string;
   state: OptionState;
   onPress: () => void;
-  disabled: boolean;
+  disabled?: boolean;
 }
 
 export function OptionButton({ label, state, onPress, disabled }: OptionButtonProps) {
@@ -26,18 +26,10 @@ export function OptionButton({ label, state, onPress, disabled }: OptionButtonPr
         : colors.card;
 
   const borderColor =
-    state === 'correct'
-      ? colors.correct
-      : state === 'incorrect'
-        ? colors.incorrect
-        : colors.border;
+    state === 'correct' ? colors.correct : state === 'incorrect' ? colors.incorrect : colors.border;
 
   const textColor =
-    state === 'correct'
-      ? colors.correct
-      : state === 'incorrect'
-        ? colors.incorrect
-        : colors.text;
+    state === 'correct' ? colors.correct : state === 'incorrect' ? colors.incorrect : colors.text;
 
   return (
     <Pressable
