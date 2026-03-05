@@ -1,50 +1,35 @@
 diff --git a/node_modules/expo-eas-observe/ios/AppMetricsModule.swift b/node_modules/expo-eas-observe/ios/AppMetricsModule.swift
-index b565664..c49deed 100644
+index b565664..522c355 100644
 --- a/node_modules/expo-eas-observe/ios/AppMetricsModule.swift
 +++ b/node_modules/expo-eas-observe/ios/AppMetricsModule.swift
-@@ -1,27 +1,46 @@
- import ExpoModulesCore
-+import EXUpdatesInterface
- 
+@@ -3,25 +3,32 @@ import ExpoModulesCore
  internal let logger = Logger(logHandlers: [createOSLogHandler(category: Logger.EXPO_LOG_CATEGORY)])
  
--public final class ExpoAppMetricsModule: Module {
-+public final class ExpoAppMetricsModule: Module, UpdatesStateChangeListener {
-+  private var updatesController: (any UpdatesInterface)?
-+  private var hasListener: Bool = false
-+  private var subscription: UpdatesStateChangeSubscription?
-+
-+  public func updatesStateDidChange(_ event: [String : Any]) {
-+    let type = event["type"] as? String ?? ""
-+    logger.info("Updates state change type \(type)")
-+  }
-+
-+  private func refreshUpdateIdIfNeeded() {
+ public final class ExpoAppMetricsModule: Module {
++  private func refreshUpdateIdIfNeeded(_ updateId: String?) {
++    guard let updateId = updateId else { return }
 +    AppMetricsActor.isolated {
-+      let stored = AppMetrics.storage.currentEntry.app
-+      let updateId = AppInfo.getLaunchedUpdateId()
-+      if stored.updateId != updateId {
++      let current = AppInfo.current
++      if updateId != current.updateId {
 +        let patched = AppInfo(
-+          appId: stored.appId,
-+          appName: stored.appName,
-+          appVersion: stored.appVersion,
-+          buildNumber: stored.buildNumber,
++          appId: current.appId,
++          appName: current.appName,
++          appVersion: current.appVersion,
++          buildNumber: current.buildNumber,
 +          updateId: updateId
 +        )
 +        AppInfo.current = patched
++        logger.debug("Refreshed AppInfo with new updateId = \(updateId)")
 +        AppMetrics.storage.currentEntry.app = patched
 +      }
 +    }
 +  }
++
    public func definition() -> ModuleDefinition {
      Name("ExpoAppMetrics")
  
      OnCreate {
-+      if let controller = UpdatesControllerRegistry.sharedInstance.controller {
-+        updatesController = controller
-+        subscription = controller.subscribeToUpdatesStateChanges(self)
-+        refreshUpdateIdIfNeeded()
-+      }
++      refreshUpdateIdIfNeeded(AppInfo.getLaunchedUpdateId())
        AppMetricsActor.isolated {
          AppMetrics.mainSession.startMonitoringFrames()
 -
@@ -63,26 +48,3 @@ index b565664..c49deed 100644
        }
      }
  
-@@ -29,6 +48,9 @@ public final class ExpoAppMetricsModule: Module {
-       AppMetricsActor.isolated {
-         AppMetrics.mainSession.stopMonitoringFrames()
-       }
-+      subscription?.remove()
-+      updatesController = nil
-+      subscription = nil
-     }
- 
-     AsyncFunction("dispatchEvents") {
-diff --git a/node_modules/expo-eas-observe/ios/Storage/AppInfo.swift b/node_modules/expo-eas-observe/ios/Storage/AppInfo.swift
-index f08272b..e0b1168 100644
---- a/node_modules/expo-eas-observe/ios/Storage/AppInfo.swift
-+++ b/node_modules/expo-eas-observe/ios/Storage/AppInfo.swift
-@@ -34,7 +34,7 @@ struct AppInfo: Codable, Equatable, Sendable {
- 
-     // Ignore embedded launches – they are not available on the website anyway.
-     if launchedUpdateId == embeddedUpdateId {
--      return nil
-+      // return nil
-     }
-     return launchedUpdateId?.uuidString.lowercased()
-   }
