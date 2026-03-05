@@ -12,7 +12,7 @@
         "expo": "^55.0.4",
         "expo-constants": "~55.0.7",
         "expo-eas-client": "^55.0.2",
-        "expo-eas-observe": "^0.0.34",
+        "expo-eas-observe": "^0.1.0",
         "expo-font": "~55.0.4",
         "expo-haptics": "~55.0.8",
         "expo-image": "~55.0.5",
@@ -877,7 +877,7 @@
 
     "expo-eas-client": ["expo-eas-client@55.0.2", "", {}, "sha512-fjOgSXaZFBK2Xmzn/uw0DTF3BsYv97JEa4PYXXqVCEvNJPwJB1cV1eX6Xyq6iKGIhMPH9k62sOc+oUdt094WCw=="],
 
-    "expo-eas-observe": ["expo-eas-observe@0.0.34", "", { "dependencies": { "expo-eas-client": "^55.0.0", "expo-updates-interface": "^55.0.0" }, "peerDependencies": { "expo": "*" } }, "sha512-/ruLq60HCOEJQV6sDhWVQaIrv9qo5MyAjW8p9LsENZJwnOuD2Q6FvOQ3Vint5IgNxgkGuIK6Wg3NQtqm0yhkCg=="],
+    "expo-eas-observe": ["expo-eas-observe@0.1.0", "", { "dependencies": { "expo-eas-client": "^55.0.0", "expo-updates-interface": "^55.0.0" }, "peerDependencies": { "expo": "*" } }, "sha512-skyJADvRtb7Sovk+w8jgcctjZyuKzuBp2g0kzrmazqvI93y7qNlui1k4yBqZEg9CarWHIf4h0UUZrLU9B19mZw=="],
 
     "expo-file-system": ["expo-file-system@55.0.10", "", { "peerDependencies": { "expo": "*", "react-native": "*" } }, "sha512-ysFdVdUgtfj2ApY0Cn+pBg+yK4xp+SNwcaH8j2B91JJQ4OXJmnyCSmrNZYz7J4mdYVuv2GzxIP+N/IGlHQG3Yw=="],
 
